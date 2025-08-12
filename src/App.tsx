@@ -8,6 +8,14 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Verifica se há usuário no localStorage (para login via view_user)
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      setLoading(false);
+      return;
+    }
+
     // Check current auth state
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -23,6 +31,13 @@ export default function App() {
   }, []);
 
   const handleLogin = () => {
+    // Verifica localStorage primeiro
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
