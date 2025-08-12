@@ -16,33 +16,26 @@ export default function Login({ onLogin }: LoginProps) {
     setLoading(true);
 
     try {
-      // Primeiro, tenta fazer login no Supabase Auth
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+      // Verifica diretamente na view_user (sem usar Supabase Auth)
+      const { data: userData, error: userError } = await supabase
+        .from('view_user')
+        .select('*')
+        .eq('email', email);
 
-    if (error) {
-        // Se falhar no auth, tenta verificar na view_user
-        const { data: userData, error: userError } = await supabase
-          .from('view_user')
-          .select('*')
-          .eq('email', email)
-          .single();
+      // Verifica se houve erro ou se não encontrou usuário
+      if (userError || !userData || userData.length === 0) {
+        alert('Email ou senha incorretos');
+        setLoading(false);
+        return;
+      }
 
-        if (userError || !userData) {
-          alert('Email ou senha incorretos');
-          setLoading(false);
-          return;
-        }
-
-        // Se encontrou o usuário na view, simula login bem-sucedido
-        // (Em produção, você implementaria verificação de senha adequada)
-        localStorage.setItem('user', JSON.stringify(userData));
-        onLogin();
-    } else {
+      // Pega o primeiro usuário encontrado
+      const user = userData[0];
+      
+      // Em produção, você implementaria verificação de senha adequada
+      // Por enquanto, aceita qualquer senha para o email encontrado
+      localStorage.setItem('user', JSON.stringify(user));
       onLogin();
-    }
     } catch (err) {
       console.error('Erro no login:', err);
       alert('Erro ao fazer login');
